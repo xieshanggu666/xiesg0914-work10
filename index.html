@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>霜脊档案 · FROSTSPINE LEDGER</title>
+<style>
+  :root{
+    --bg:#0a1018; --bg2:#0e1722; --panel:#111d2b; --panel2:#16243400;
+    --line:#22344a; --ink:#dce8f2; --dim:#8aa2b8; --faint:#5b7186;
+    --cyan:#6fd3e8; --blue:#5b9bd5; --ice:#bfe9f5;
+    --warn:#e8b24e; --bad:#e86f6f; --good:#7fd8a0; --pur:#b49ee8;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #16283d 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #122233 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;
+    font-size:14px; line-height:1.65;
+    min-height:100vh;
+  }
+  /* ---------- 顶栏 ---------- */
+  header{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding:10px 18px; border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0d1825,#0a131d);
+    position:sticky; top:0; z-index:20;
+  }
+  .brand{display:flex; flex-direction:column; line-height:1.2; margin-right:8px}
+  .brand b{letter-spacing:4px; font-size:15px; color:var(--ice)}
+  .brand small{font-family:var(--mono); font-size:9px; letter-spacing:3px; color:var(--faint)}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; flex:1}
+  .chip{
+    border:1px solid var(--line); background:#0e1a27; border-radius:6px;
+    padding:4px 10px; font-size:12px; color:var(--dim); white-space:nowrap;
+    font-family:var(--mono);
+  }
+  .chip b{color:var(--ink); font-weight:600; margin-left:4px}
+  .chip.warn b{color:var(--warn)} .chip.bad b{color:var(--bad)}
+  .chip.good b{color:var(--good)} .chip.cyan b{color:var(--cyan)}
+  /* ---------- 布局 ---------- */
+  main{
+    display:grid; grid-template-columns:300px minmax(0,1fr) 320px;
+    gap:14px; padding:14px; max-width:1500px; margin:0 auto;
+  }
+  @media(max-width:1100px){ main{grid-template-columns:1fr} }
+  .col{display:flex; flex-direction:column; gap:14px; min-width:0}
+  .card{
+    border:1px solid var(--line); border-radius:10px;
+    background:linear-gradient(180deg,#101c2a,#0d1722);
+    padding:14px;
+  }
+  .card h3{
+    font-size:11px; letter-spacing:3px; color:var(--faint); font-weight:600;
+    border-bottom:1px dashed var(--line); padding-bottom:8px; margin-bottom:10px;
+    font-family:var(--mono); text-transform:uppercase;
+  }
+  /* ---------- 队员 ---------- */
+  .member{border:1px solid var(--line); border-radius:8px; padding:9px 10px; margin-bottom:8px; background:#0c1621}
+  .member:last-child{margin-bottom:0}
+  .member .top{display:flex; justify-content:space-between; align-items:baseline; gap:6px}
+  .member .nm{font-weight:600; color:var(--ice)}
+  .member .role{font-size:10px; color:var(--faint); font-family:var(--mono); letter-spacing:1px}
+  .member .tag{font-size:10px; padding:1px 7px; border-radius:20px; border:1px solid var(--line); color:var(--dim)}
+  .member .tag.inj{border-color:var(--bad); color:var(--bad)}
+  .member .tag.crit{background:#3a1c22; border-color:var(--bad); color:#ff9a9a}
+  .member .tag.fine{border-color:var(--good); color:var(--good)}
+  .member .tag.low{border-color:var(--warn); color:var(--warn)}
+  .bars{display:grid; grid-template-columns:1fr 1fr; gap:4px 10px; margin-top:6px}
+  .bar{font-size:10px; color:var(--faint); font-family:var(--mono)}
+  .bar i{display:block; height:4px; background:#1a2a3c; border-radius:3px; margin-top:2px; overflow:hidden}
+  .bar i::before{content:""; display:block; height:100%; background:var(--cyan); border-radius:3px; transition:width .4s}
+  .bar.mo i::before{background:var(--pur)}
+  .bar i.lo::before{background:var(--warn)}
+  .bar i.cri::before{background:var(--bad)}
+  .member .mental{font-size:10px; color:var(--dim); margin-top:5px}
+  /* ---------- 设备 ---------- */
+  .gear{display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:5px 0; border-bottom:1px dotted #1c2c3e}
+  .gear:last-child{border-bottom:0}
+  .gear .gv{font-family:var(--mono); color:var(--cyan)}
+  .gear .gv.low{color:var(--warn)} .gear .gv.cri{color:var(--bad)}
+  /* ---------- 舞台 ---------- */
+  #stage{min-height:420px}
+  .phase-tag{
+    display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:2px;
+    color:var(--cyan); border:1px solid #234; background:#0d1c2a;
+    padding:2px 9px; border-radius:20px; margin-bottom:10px;
+  }
+  .day-title{font-size:21px; font-weight:700; color:var(--ice); letter-spacing:2px; margin-bottom:2px}
+  .day-sub{font-size:12px; color:var(--faint); font-family:var(--mono); margin-bottom:14px}
+  .wx{display:flex; gap:14px; flex-wrap:wrap; border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:#0c1621; margin-bottom:12px}
+  .wx div{font-size:12px; color:var(--dim)}
+  .wx div b{display:block; font-size:14px; color:var(--ink); font-family:var(--mono)}
+  .wx div b.bad{color:var(--bad)} .wx div b.warn{color:var(--warn)} .wx div b.good{color:var(--good)}
+  .prose{margin-bottom:12px}
+  .prose p{margin-bottom:8px}
+  .log{
+    border-left:2px solid var(--line); padding:6px 0 6px 12px; margin:10px 0;
+    max-height:230px; overflow-y:auto; font-size:12.5px;
+  }
+  .log p{margin-bottom:6px; color:var(--dim)}
+  .log p .t{color:var(--faint); font-family:var(--mono); font-size:10px; margin-right:6px}
+  .log p.good{color:#9fd8b6} .log p.bad{color:#e89a9a} .log p.warn{color:#e6c486}
+  .log p.cyan{color:#9fd8e8} .log p.pur{color:#c3b2ec}
+  /* ---------- 按钮/选择 ---------- */
+  .choices{display:flex; flex-direction:column; gap:8px; margin-top:12px}
+  .btn{
+    text-align:left; cursor:pointer; color:var(--ink);
+    border:1px solid var(--line); background:#11202f; border-radius:8px;
+    padding:10px 13px; font-size:13px; font-family:inherit; line-height:1.5;
+    transition:border-color .15s, background .15s, transform .05s;
+  }
+  .btn:hover:not(:disabled){border-color:var(--cyan); background:#15283c}
+  .btn:active:not(:disabled){transform:translateY(1px)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .btn.primary{border-color:#2a5f72; background:#10303d; color:var(--ice)}
+  .btn.primary:hover:not(:disabled){background:#143d4d; border-color:var(--cyan)}
+  .btn.danger{border-color:#6a3030} .btn.danger:hover:not(:disabled){background:#331b1f; border-color:var(--bad)}
+  .btn .sub{display:block; font-size:11px; color:var(--faint); margin-top:2px}
+  .btn .sub .ok{color:var(--good)} .btn .sub .no{color:var(--bad)} .btn .sub .wn{color:var(--warn)}
+  .row{display:flex; gap:8px; flex-wrap:wrap}
+  .row .btn{flex:1; min-width:140px; text-align:center}
+  /* ---------- 选址 ---------- */
+  .sites{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px}
+  .site{
+    border:1px solid var(--line); border-radius:8px; padding:11px; background:#0c1621;
+    cursor:pointer; transition:border-color .15s, background .15s;
+  }
+  .site:hover{border-color:var(--cyan); background:#0f1d2c}
+  .site.locked{opacity:.45; cursor:not-allowed}
+  .site.selected{border-color:var(--cyan); background:#102535; box-shadow:0 0 0 1px var(--cyan) inset}
+  .site h4{font-size:14px; color:var(--ice); margin-bottom:3px}
+  .site .meta{font-size:10px; font-family:var(--mono); color:var(--faint); margin-bottom:7px; letter-spacing:1px}
+  .site .kv{display:flex; justify-content:space-between; font-size:11px; color:var(--dim); padding:1px 0}
+  .site .kv b{color:var(--ink); font-family:var(--mono); font-weight:500}
+  .site .lk{font-size:10px; color:var(--warn); margin-top:6px}
+  .picker{border:1px solid var(--line); border-radius:8px; padding:10px; margin-top:10px; background:#0c1621}
+  .picker h4{font-size:11px; letter-spacing:2px; color:var(--faint); font-family:var(--mono); margin-bottom:8px}
+  .mpick{display:flex; gap:6px; flex-wrap:wrap}
+  .mpick .p{
+    border:1px solid var(--line); border-radius:6px; padding:6px 9px; cursor:pointer;
+    font-size:12px; background:#0e1a27; user-select:none;
+  }
+  .mpick .p.sel{border-color:var(--cyan); background:#12283a; color:var(--ice)}
+  .mpick .p.off{opacity:.35; cursor:not-allowed}
+  .seg{display:flex; gap:6px; margin-top:8px}
+  .seg .s{flex:1; text-align:center; border:1px solid var(--line); border-radius:6px; padding:7px; cursor:pointer; font-size:12px; background:#0e1a27}
+  .seg .s.sel{border-color:var(--warn); background:#241f12; color:var(--warn)}
+  /* ---------- 右栏 ---------- */
+  #samples{max-height:240px; overflow-y:auto}
+  .samp{border:1px solid var(--line); border-radius:6px; padding:7px 9px; margin-bottom:6px; background:#0c1621; font-size:12px}
+  .samp .h{display:flex; justify-content:space-between}
+  .samp .h b{color:var(--ice); font-weight:600; font-size:12px}
+  .samp .h .v{font-family:var(--mono); color:var(--cyan)}
+  .samp .src{font-size:10px; color:var(--faint); font-family:var(--mono)}
+  .samp .note{font-size:10.5px; color:var(--dim); margin-top:2px}
+  #timeline{max-height:380px; overflow-y:auto; padding-right:4px}
+  #timeline .e{font-size:11.5px; color:var(--dim); padding:4px 0 4px 10px; border-left:2px solid var(--line); margin-bottom:5px}
+  #timeline .e .d{font-family:var(--mono); font-size:9.5px; color:var(--faint); display:block}
+  #timeline .e.good{border-color:var(--good)} #timeline .e.bad{border-color:var(--bad)}
+  #timeline .e.warn{border-color:var(--warn)} #timeline .e.pur{border-color:var(--pur)}
+  /* ---------- 通信 ---------- */
+  .signal{height:8px; background:#1a2a3c; border-radius:4px; overflow:hidden; margin:8px 0}
+  .signal i{display:block; height:100%; background:linear-gradient(90deg,var(--bad),var(--warn),var(--good)); border-radius:4px}
+  /* ---------- 档案 ---------- */
+  .archive{max-width:820px; margin:0 auto}
+  .archive .doc{
+    border:1px solid #2c4258; background:#f4efe2; color:#20282f;
+    border-radius:4px; padding:34px 40px; font-family:"Songti SC","SimSun","Noto Serif CJK SC",serif;
+    box-shadow:0 12px 40px #0009;
+  }
+  .archive .doc h1{text-align:center; letter-spacing:8px; font-size:26px; margin-bottom:4px}
+  .archive .doc .sub{text-align:center; font-family:var(--mono); font-size:11px; color:#6a727b; letter-spacing:2px; margin-bottom:20px}
+  .archive .doc h2{font-size:15px; border-bottom:1px solid #b9ad93; padding-bottom:4px; margin:18px 0 8px; letter-spacing:3px}
+  .archive .doc table{width:100%; border-collapse:collapse; font-size:12.5px; margin:6px 0}
+  .archive .doc td,.archive .doc th{border:1px solid #c8bfa8; padding:5px 8px; text-align:left}
+  .archive .doc th{background:#e8e0cd}
+  .archive .grade{text-align:center; margin:18px 0 6px}
+  .archive .grade .g{font-size:64px; font-weight:700; font-family:var(--mono); line-height:1}
+  .archive .grade .t{letter-spacing:6px; font-size:15px; margin-top:6px}
+  .archive .doc .foot{margin-top:22px; font-size:11px; color:#6a727b; text-align:center; font-family:var(--mono)}
+  .archive .doc ul{padding-left:20px; font-size:12.5px}
+  .archive .doc li{margin-bottom:3px}
+  /* ---------- 开场 ---------- */
+  .intro{max-width:680px; margin:20px auto; text-align:left}
+  .intro .big{font-size:30px; letter-spacing:12px; color:var(--ice); font-weight:700; text-align:center}
+  .intro .en{text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:6px; color:var(--faint); margin:6px 0 22px}
+  .intro .brief{border:1px solid var(--line); border-radius:8px; padding:16px 18px; background:#0c1621; margin-bottom:16px}
+  .intro .brief li{margin-left:18px; margin-bottom:5px; font-size:12.5px; color:var(--dim)}
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-thumb{background:#22344a; border-radius:4px}
+  ::-webkit-scrollbar-track{background:transparent}
+  .beat-anim{animation:beat .35s ease}
+  @keyframes beat{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+  .pulse-warn{animation:pw 1.6s infinite}
+  @keyframes pw{0%,100%{box-shadow:0 0 0 0 #e8b24e33}50%{box-shadow:0 0 0 4px #e8b24e22}}
+  @media print{
+    header,main,.noprint{display:none!important}
+    body{background:#fff}
+    .archive .doc{box-shadow:none;border:0}
+  }
+</style>
+</head>
+<body>
+
+<header id="hdr" style="display:none">
+  <div class="brand"><b>霜脊档案</b><small>FROSTSPINE LEDGER</small></div>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main id="app" style="display:none">
+  <!-- 左栏：人员与设备 -->
+  <div class="col">
+    <section class="card">
+      <h3>考察队 / CREW</h3>
+      <div id="crew"></div>
+    </section>
+    <section class="card">
+      <h3>设备状态 / EQUIPMENT</h3>
+      <div id="gear"></div>
+    </section>
+  </div>
+
+  <!-- 中栏：主舞台 -->
+  <div class="col">
+    <section class="card" id="stage"></section>
+  </div>
+
+  <!-- 右栏：样本与时间线 -->
+  <div class="col">
+    <section class="card">
+      <h3>样本柜 / SAMPLES <span id="sciChip" style="float:right;color:var(--cyan)"></span></h3>
+      <div id="samples"></div>
+    </section>
+    <section class="card">
+      <h3>考察日志 / LOG</h3>
+      <div id="timeline"></div>
+    </section>
+  </div>
+</main>
+
+<div id="root-intro"></div>
+
+<script>
+/* =====================================================================
+   霜脊档案 FROSTSPINE LEDGER
+   极地科考站资源决策冒险 —— 单文件游戏
+   ===================================================================== */
+
+/* ---------------- 工具：随机数（可播种，便于复测） ---------------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let RNG = mulberry32(Date.now()>>>0);
+const ri=(n)=>Math.floor(RNG()*n);
+const pick=(arr)=>arr[ri(arr.length)];
+function chance(p){return RNG()<p}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function rrange(a,b){return a+ri(b-a+1)}
+function weighted(list){ // [[item,w],...]
+  let tot=list.reduce((s,x)=>s+x[1],0), r=RNG()*tot;
+  for(const [it,w] of list){ if((r-=w)<0) return it }
+  return list[list.length-1][0];
+}
+const $=(sel,root)=>((root||document).querySelector(sel));
+const $$=(sel,root)=>Array.from((root||document).querySelectorAll(sel));
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+/* ---------------- 静态数据 ---------------- */
+const CREW_SEED = [
+  {id:'lin', name:'林 峥',  role:'队长 · 地质', spec:'geo',    st:72, mo:64, skill:{geo:8,ice:6,mech:5,med:4,met:4}},
+  {id:'su',  name:'苏 晓',  role:'气象 · 兼职医官', spec:'met', st:78, mo:70, skill:{met:8,med:7,geo:3,ice:5,mech:3}},
+  {id:'lao', name:'老 魏',  role:'机械师 · 极地向导', spec:'mech', st:80, mo:58, skill:{mech:8,ice:7,geo:4,met:4,med:3}},
+  {id:'he',  name:'何 知 遥', role:'冰川学 · 新人', spec:'ice', st:66, mo:60, skill:{ice:8,geo:6,mech:3,med:2,met:5}},
+];
+
+const GEAR_SEED = [
+  {id:'heater', name:'燃油加热器', val:92, desc:'夜间维持站内温度'},
+  {id:'scooter',name:'雪地车组',  val:88, desc:'外出机动 / 返程速度'},
+  {id:'drill',  name:'冰芯钻机',  val:80, desc:'深层、湖区采样'},
+  {id:'sensor', name:'气象传感器组',val:85, desc:'采样精度与天气预报'},
+];
+
+const SITES = [
+  {id:'shelf', name:'陆缘冰架', dist:12, danger:1, baseCost:6, sci:[3,7],
+    need:null, tags:['geo','ice'],
+    desc:'相对平坦的蓝冰平原，老魏的雪地车半日即可往返。'},
+  {id:'blue', name:'蓝冰走廊', dist:28, danger:2, baseCost:10, sci:[7,13],
+    need:{type:'skill',skill:'ice',v:6,label:'冰川学技能 ≥6（何知遥 / 老魏）'},
+    tags:['ice','geo'],
+    desc:'风蚀出的古老蓝冰带，冰芯年份可追溯至上万年前。'},
+  {id:'peak', name:'风化峰剖面', dist:40, danger:3, baseCost:14, sci:[10,18],
+    need:{type:'skill',skill:'geo',v:6,label:'地质技能 ≥6（林峥 / 何知遥）'},
+    tags:['geo'],
+    desc:'裸岩与冰的交界，可能保留着完整的岩层剖面。'},
+  {id:'lake', name:'冰下湖区', dist:55, danger:3, baseCost:18, sci:[16,26],
+    need:{type:'gear',gear:'drill',v:25,label:'钻机状况 ≥25'},
+    tags:['ice','geo'],
+    desc:'厚冰之下是封闭万年的冰下湖，钻穿冰层才有样本。'},
+  {id:'interior', name:'内陆异常点', dist:75, danger:4, baseCost:24, sci:[24,38],
+    need:{type:'flag',flag:'meteor',label:'先在风化峰发现「陨石碎片」'},
+    tags:['ice','geo','met'],
+    desc:'磁异常与目击记录指向内陆深处——风险与回报都没有上限。'},
+];
+
+const SAMPLE_POOL = {
+  shelf:[
+    {n:'表层冰芯切片',v:[3,6],tag:'冰川'},
+    {n:'海冰盐度序列',v:[4,7],tag:'海洋'},
+    {n:'冰架应变数据',v:[3,6],tag:'结构'},
+  ],
+  blue:[
+    {n:'万年蓝冰冰芯',v:[8,13],tag:'古气候'},
+    {n:'火山灰层样本',v:[8,12],tag:'火山'},
+    {n:'古气泡封存体',v:[9,13],tag:'大气'},
+  ],
+  peak:[
+    {n:'基岩风化剖面',v:[10,15],tag:'地质'},
+    {n:'陨石碎片',v:[14,18],tag:'天体',flag:'meteor'},
+  ],
+  lake:[
+    {n:'冰下湖水样',v:[18,26],tag:'极端生态'},
+    {n:'湖底沉积岩芯',v:[17,25],tag:'沉积'},
+  ],
+  interior:[
+    {n:'异常磁核样本',v:[26,36],tag:'未知'},
+    {n:'深层古老冰芯',v:[24,32],tag:'古气候'},
+    {n:'未知有机残迹',v:[28,38],tag:'疑似生命'},
+  ],
+  mini:[
+    {n:'帝企鹅行为记录',v:[2,4],tag:'生态'},
+    {n:'极光光谱数据',v:[3,5],tag:'空间物理'},
+    {n:'异常信号录音',v:[4,7],tag:'未解'},
+  ],
+  deep:{ // 深挖附加样本
+    shelf:{n:'多年叠冰层理芯',v:[7,10],tag:'冰川'},
+    blue:{n:'蓝冰底部碎屑带',v:[12,16],tag:'古气候'},
+    peak:{n:'岩层下伏侵入体',v:[16,22],tag:'地质'},
+    lake:{n:'冰下湖深层水',v:[24,30],tag:'极端生态'},
+    interior:{n:'异常点核心物质',v:[34,44],tag:'未知'},
+  },
+};
+
+// 天气：温度(℃) / 能见度档 / 风速档
+const VIS_LEVELS=[
+  {n:'极佳',v:5,mod:0},
+  {n:'良好',v:4,mod:0},
+  {n:'一般',v:3,mod:1},
+  {n:'较差',v:2,mod:2},
+  {n:'白化天',v:1,mod:3},
+];
+const SEV_INFO=[
+  {n:'平稳',cls:'good'},
+  {n:'转差',cls:'warn'},
+  {n:'恶劣',cls:'warn'},
+  {n:'暴风雪',cls:'bad'},
+  {n:'极端风暴',cls:'bad'},
+];
+const COMM_WINDOWS=[ // 第几日（从1计），信号强度 0..1
+  {day:2,q:.9},{day:5,q:.6},{day:8,q:.8},{day:12,q:.5},
+];
+
+/* ---------------- 游戏状态 ---------------- */
+let S = null;
+function newGame(seed){
+  RNG = mulberry32(seed||(Date.now()>>>0));
+  S = {
+    code:'FR-'+(1000+ri(9000))+'-Σ',
+    seed: seed||(Date.now()>>>0),
+    day:1, maxDay:14,
+    supplies:100, sci:0,
+    members: CREW_SEED.map(m=>({...m, st:m.st, mo:m.mo, inj:0, alive:true, deep:false,
+                               notes:[]})),
+    gear: GEAR_SEED.map(g=>({...g})),
+    phase:'brief',            // brief | plan | evening | archive | final
+    wx:null, forecast:null,
+    site:null, picked:[], rations:1, samplingMode:'std',
+    expedition:null,
+    ap:2,
+    flags:{meteor:false, commUsedToday:false, commWindowToday:null,
+           evacRequested:false, evacDay:null, labToday:false, commsLog:[]},
+    samples:[], timeline:[], log:[],
+    stats:{trips:0, labDays:0, nights:0, hazards:0, injured:0,
+           samplesLost:0, rescued:0, km:0, comms:0, meetings:0, repairs:0,
+           deepDrills:0},
+    final:null,
+  };
+  rollWeather(true);
+}
+function mem(id){return S.members.find(m=>m.id===id)}
+function gearOf(id){return S.gear.find(g=>g.id===id)}
+function ableMembers(){return S.members.filter(m=>m.alive && m.inj<2)}
+function walkingMembers(){return S.members.filter(m=>m.alive)}
+
+/* ---------------- 天气 ---------------- */
+function rollWeather(first){
+  // 季节推进：越靠后越恶劣
+  const t = (S.day-1)/(S.maxDay-1);
+  function gen(){
+    const r = RNG();
+    let sev;
+    const stormP = .08 + t*.22;
+    if(r<stormP*.45) sev=4;
+    else if(r<stormP) sev=3;
+    else if(r<stormP+.22) sev=2;
+    else if(r<stormP+.5) sev=1;
+    else sev=0;
+    if(first) sev=0;
+    const temp = clamp(Math.round(-18 - t*14 - sev*5 + (RNG()*6-3)), -62, -12);
+    let vis = clamp(4 - sev + (chance(.5)?(chance(.5)?1:-1):0), 0, 4);
+    if(sev===4) vis=Math.min(vis,1);
+    const wind = clamp(Math.round(2 + sev*9 + ri(12)), 2, 52);
+    return {sev,temp,vis:VIS_LEVELS[vis],wind};
+  }
+  const actual = gen();
+  // 预报由气象传感器与苏晓决定；留站越准
+  S.wx = actual;
+  const sensor = gearOf('sensor').val;
+  const metHome = ableMembers().filter(m=>m.spec==='met').length>0;
+  const acc = clamp(Math.round(sensor/100*2) + (metHome?2:0) + ri(2), 0, 4); // 0..4 误差等级
+  function wobble(w){
+    let s2 = clamp(w.sev + rrange(-1,1) + (4-acc>2? (chance(.5)?1:-1):0), 0, 4);
+    let v2 = clamp(VIS_LEVELS.indexOf(w.vis) + (chance(.5)?1:-1)*(acc<2?1:0),0,4);
+    return {sev:s2, vis:VIS_LEVELS[v2], temp:w.temp+rrange(-4,4), wind:clamp(w.wind+rrange(-8,8),0,60)};
+  }
+  const f = wobble(actual);
+  const conf = ['仅供参考','低信度','中信度','较高信度','高信度'][acc];
+  S.forecast = {...f, conf, acc};
+}
+
+/* ---------------- 记录 ---------------- */
+function addLog(msg,cls){
+  S.log.unshift({d:S.day,msg,cls:cls||''});
+  if(S.log.length>60) S.log.pop();
+}
+function addTime(msg,cls){
+  S.timeline.push({d:S.day,msg,cls:cls||''});
+}
+function addSample(s,siteId,note){
+  const rec={...s, v:rrange(s.v[0],s.v[1]), src:siteId, day:S.day, note:note||''};
+  S.samples.push(rec); S.sci+=rec.v;
+  return rec;
+}
+
+/* ---------------- 数值判定 ---------------- */
+function memberEff(m){
+  const st = m.st/100, mo = m.mo/100;
+  let e = .45 + .35*st + .2*mo;
+  if(m.inj===1) e*=.8;
+  if(m.inj===2) e*=.45;
+  return clamp(e,.15,1.25);
+}
+function check(ids, skill, difficulty){
+  const crew = ids.map(mem);
+  let best=null, bv=-1;
+  for(const m of crew){
+    if(!m.alive) continue;
+    const v = m.skill[skill]*memberEff(m);
+    if(v>bv){bv=v; best=m}
+  }
+  return {ok: bv + (RNG()*2-1) >= difficulty, who:best, score:bv};
+}
+function drainField(ids, amount){
+  for(const id of ids){
+    const m=mem(id);
+    m.st=clamp(m.st-amount,0,100);
+    if(m.st<25 && chance(.45)){ m.mo=clamp(m.mo-rrange(3,8),0,100) }
+    if(m.st===0 && chance(.35)) hurt(m,'低温脱力');
+  }
+}
+function hurt(m,reason){
+  if(m.inj<2){
+    m.inj++;
+    if(m.inj===1){ addLog(`<b>${m.name}</b> 受轻伤（${reason}）。`,'warn'); m.notes.push(`D${S.day} ${reason}`) }
+    else { addLog(`<b>${m.name}</b> 重伤，失去行动能力（${reason}）。`,'bad'); S.stats.injured++ }
+    m.mo=clamp(m.mo-12,0,100);
+  }
+}
+
+/* =====================================================================
+   阶段一：晨间简报
+   ===================================================================== */
+function renderBrief(){
+  const f=S.forecast, w=S.wx;
+  const comm = COMM_WINDOWS.find(c=>c.day===S.day);
+  S.flags.commWindowToday = comm||null;
+  const evac = S.flags.evacRequested;
+  $('#stage').innerHTML=`
+    <div class="beat-anim">
+      <span class="phase-tag">PHASE 01 · 晨间简报</span>
+      <div class="day-title">第 ${S.day} / ${S.maxDay} 日</div>
+      <div class="day-sub">${dateStr()} · 档案编号 ${S.code}</div>
+      <div class="wx">
+        <div>预报气温<b class="${f.temp<-35?'bad':f.temp<-25?'warn':'good'}">${f.temp}℃</b></div>
+        <div>预报能见度<b>${f.vis.n}</b></div>
+        <div>预报风速<b class="${f.wind>30?'bad':f.wind>18?'warn':''}">${f.wind} km/h</b></div>
+        <div>预报信度<b>${f.conf}</b></div>
+      </div>
+      <div class="prose">
+        <p>${morningFlavor()}</p>
+        <p style="color:var(--dim);font-size:12.5px">
+        预报是苏晓结合气象传感器与昨夜读数做出的判断——实际天气可能在出发后变化。
+        ${comm?`<br>📡 通讯员通知：<b style="color:var(--cyan)">今日有通信窗口</b>，窗口内只能完成一次上行通信。`
+               :'<br>今日没有预定通信窗口。'}
+        ${evac?`<br><b style="color:var(--warn)">撤离请求已发出，接应预计第 ${S.flags.evacDay} 日抵达——必须坚持到那一天。</b>`:''}
+        </p>
+      </div>
+      <div class="choices">
+        <button class="btn primary" onclick="goPlan()">前往任务规划 →
+          <span class="sub">选择采样地点、派出队员与口粮配额</span></button>
+      </div>
+    </div>`;
+}
+function dateStr(){
+  const d=new Date(2026,10,1); // 2026-11-01
+  d.setDate(d.getDate()+S.day-1);
+  const w=['日','一','二','三','四','五','六'][d.getDay()];
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} 周${w}`;
+}
+function morningFlavor(){
+  const t=S.forecast.temp;
+  if(t<=-40) return '呼气成霜。站外的世界只剩下风的声音，仪表上的数字低得像一种警告。';
+  if(S.forecast.vis.v<=2) return '窗外一片乳白，地平线消失在天光与冰面之间——今天很容易迷路。';
+  if(S.day>=S.maxDay-3) return '极昼的光正在变得稀薄，季节尾声近了。所有人都知道：下一次窗口之后，就该考虑回家。';
+  return '又是一个被冰原反光填满的清晨。发电机低声运转，咖啡还热着。';
+}
+function goPlan(){ S.phase='plan'; S.site=null; S.picked=[]; S.rations=1; S.samplingMode='std'; render() }
+
+/* =====================================================================
+   阶段二：任务规划
+   ===================================================================== */
+function siteLocked(st){
+  if(st.need){
+    if(st.need.type==='skill'){
+      const ok=ableMembers().some(m=>m.skill[st.need.skill]>=st.need.v);
+      return ok?null:st.need.label;
+    }
+    if(st.need.type==='gear'){
+      const g=gearOf(st.need.gear);
+      return g.val>=st.need.v?null:(st.need.label+`（当前 ${g.val}）`);
+    }
+    if(st.need.type==='flag') return S.flags[st.need.flag]?null:st.need.label;
+  }
+  return null;
+}
+function renderPlan(){
+  const sel = S.site?SITES.find(x=>x.id===S.site):null;
+  const canGo = sel && S.picked.length>=2 &&
+    S.supplies >= tripCost(sel) &&
+    ableMembers().length - S.picked.length>=1;
+  $('#stage').innerHTML=`
+    <div class="beat-anim">
+      <span class="phase-tag">PHASE 02 · 任务规划</span>
+      <div class="day-title">今日去向</div>
+      <div class="day-sub">至少派出 2 人，至少 1 人留守站点。补给将在出发时结算。</div>
+      <div class="sites">
+        ${SITES.map(st=>{
+          const lk=siteLocked(st);
+          return `<div class="site ${lk?'locked':''} ${sel&&sel.id===st.id?'selected':''}"
+                    onclick="${lk?'':`pickSite('${st.id}')`}">
+            <h4>${st.name}</h4>
+            <div class="meta">${st.dist} KM · 风险 ${'▲'.repeat(st.danger)}${'△'.repeat(4-st.danger)}</div>
+            <div class="kv"><span>基础补给</span><b>${st.baseCost}</b></div>
+            <div class="kv"><span>科学价值</span><b>${st.sci[0]}–${st.sci[1]}</b></div>
+            <div class="kv"><span>往返风险事件</span><b>${hazardCount(st)} 次</b></div>
+            ${lk?`<div class="lk">🔒 ${esc(lk)}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn" onclick="chooseLab()">🛠 留站实验室日
+          <span class="sub">整理已有样本（价值 +25%）· 全员恢复体力 · 不消耗外出补给</span></button>
+      </div>
+
+      ${sel?renderPlanDetail(sel):''}
+    </div>`;
+  bindPlanButtons(canGo);
+}
+function renderPlanDetail(st){
+  return `
+  <div class="picker">
+    <h4>派出队员（已选 ${S.picked.length} 人）</h4>
+    <div class="mpick">
+      ${S.members.map(m=>{
+        const on=S.picked.includes(m.id);
+        const dis=!m.alive||m.inj>=2;
+        return `<div class="p ${on?'sel':''} ${dis?'off':''}"
+          onclick="${dis?'':`toggleMember('${m.id}')`}">
+          ${m.name} <span style="color:var(--faint);font-size:10px">
+          体${m.st} 意${m.mo}${m.inj?' ⚠':''}</span></div>`;
+      }).join('')}
+    </div>
+    <h4 style="margin-top:12px">口粮与燃料配额</h4>
+    <div class="seg">
+      <div class="s ${S.rations===1?'sel':''}" onclick="setRat(1)">标准配额 ${st.baseCost}
+        <div style="font-size:10px;color:var(--faint)">正常消耗</div></div>
+      <div class="s ${S.rations===2?'sel':''}" onclick="setRat(2)">加重配额 ${tripCost(st)}
+        <div style="font-size:10px;color:var(--good)">途中体力消耗 −30%，士气 +4</div></div>
+    </div>
+    <h4 style="margin-top:12px">采样方式</h4>
+    <div class="seg">
+      <div class="s ${S.samplingMode==='std'?'sel':''}" onclick="setMode('std')">标准流程
+        <div style="font-size:10px;color:var(--faint)">稳妥取样</div></div>
+      <div class="s ${S.samplingMode==='aggro'?'sel':''}" onclick="setMode('aggro')">激进深挖
+        <div style="font-size:10px;color:var(--warn)">样本更多更好，但额外损耗体力 / 设备，并可能遇险</div></div>
+    </div>
+    <div class="choices">
+      <button id="goBtn" class="btn primary" ${''}>确认出发 →</button>
+      <div id="planErr" style="font-size:11px;color:var(--bad)"></div>
+    </div>
+  </div>`;
+}
+function bindPlanButtons(canGo){
+  const btn=$('#goBtn');
+  if(!btn) return;
+  btn.disabled=!canGo;
+  btn.onclick=()=>{
+    const st=SITES.find(x=>x.id===S.site);
+    const err=$('#planErr');
+    if(S.picked.length<2){err.textContent='至少派出 2 人。';return}
+    if(ableMembers().length-S.picked.length<1){err.textContent='至少留 1 名可行动队员守站。';return}
+    if(S.supplies<tripCost(st)){err.textContent=`补给不足（需要 ${tripCost(st)}，现有 ${S.supplies}）。`;return}
+    startExpedition(st);
+  };
+}
+function tripCost(st){return st.baseCost*S.rations}
+function hazardCount(st){
+  const n = st.danger + (S.wx?S.wx.vis.mod:0);
+  return Math.max(1,n);
+}
+function pickSite(id){ S.site=id; render() }
+function toggleMember(id){
+  const i=S.picked.indexOf(id);
+  if(i>=0) S.picked.splice(i,1);
+  else{
+    if(S.picked.length>=3) return;
+    if(ableMembers().length - S.picked.length <=1) return; // 必须留 1 人
+    S.picked.push(id);
+  }
+  render();
+}
+function setRat(r){ S.rations=r; render() }
+function setMode(m){ S.samplingMode=m; render() }
+
+/* 实验室日 */
+function chooseLab(){
+  S.flags.labToday=true;
+  S.stats.labDays++;
+  const gain=Math.round(S.sci*0.0)+0; // 不加总分，直接给样本加成
+  let bonus=0;
+  S.samples.forEach(s=>{ if(!s.labbed){ s.labbed=true; const b=Math.round(s.v*.25); s.v+=b; s.note+=(s.note?'；':'')+'实验室整理 +'+b; bonus+=b } });
+  S.sci += bonus;
+  walkingMembers().forEach(m=>{m.st=clamp(m.st+14,0,100)});
+  addLog(`实验室日：整理样本产出 <b>+${bonus}</b> 科学价值，全员体力恢复。`,bonus>0?'good':'cyan');
+  addTime(`第${S.day}日 · 留站整理样本（+${bonus}），无人外出。`,'cyan');
+  S.phase='evening'; S.expedition=null;
+  startEvening();
+}
+
+/* =====================================================================
+   阶段三：外出行动（节拍式事件链）
+   ===================================================================== */
+const HAZARDS=[
+  {id:'crevasse', w:10,
+   run:e=>{
+     e.title='冰裂隙';
+     e.text='雪地车前方的雪桥突然塌陷——一条幽蓝的裂隙横在路线上，边缘还在簌簌掉冰。';
+     e.options=[
+       {t:'绕路，谨慎通过', sub:'多耗时间与体力，安全', fn:x=>{
+          drainField(S.picked,rrange(3,6));
+          S.supplies=Math.max(0,S.supplies-2);
+          x.log('队伍绕远通过裂隙区，多烧了燃料，没有人受伤。','cyan'); x.next() }},
+       {t:'让老魏式的好手快速跨越', sub:'冰上技能检定，失败则坠落受伤', fn:x=>{
+          const r=check(S.picked,'ice',6);
+          if(r.ok){ x.log(`${r.who.name} 读雪判断路线，车队一跃而过。`,'good'); x.next() }
+          else { const vic=pick(S.picked.map(mem)); hurt(vic,'坠入浅裂隙'); drainField(S.picked,4); x.next() } }},
+     ]}},
+  {id:'cache', w:6, good:true,
+   run:e=>{
+     const fuel=rrange(4,9), food=rrange(3,7);
+     e.title='前人补给点';
+     e.text='GPS 坐标旁的雪堆里露出半截杆子——是早年考察队留下的应急补给箱，封条还在。';
+     e.options=[
+       {t:'回收物资（燃油+食材）', fn:x=>{
+          S.supplies=clamp(S.supplies+fuel+food,0,140);
+          x.log(`从旧补给点回收了约 ${fuel} 份燃料与 ${food} 份食材。`,'good'); x.next() }},
+       {t:'只取药品，其余留作应急', fn:x=>{
+          S.members.forEach(m=>{if(m.inj>0)m.mo=clamp(m.mo+6,0,100)});
+          x.log('为伤员取了镇痛与冻伤膏，其余物资原样封存。','cyan'); x.next() }},
+     ]}},
+  {id:'wildlife', w:6, good:true,
+   run:e=>{
+     e.title='帝企鹅群';
+     e.text='背风处挤着一群帝企鹅，成鸟正换羽。它们不怕人，只是歪头打量这群裹得严实的访客。';
+     e.options=[
+       {t:'何知遥提议做行为记录（+少量科学价值）', fn:x=>{
+          const s=addSample(pick(SAMPLE_POOL.mini.slice(0,1)),'野外偶遇');
+          x.log(`获得「${s.n}」（价值 ${s.v}）。`,'good'); x.next() }},
+       {t:'不惊扰它们，快速通过', fn:x=>{x.log('队伍放轻脚步离开。企鹅群重新合拢。','cyan'); x.next() }},
+     ]}},
+  {id:'aurora', w:5, good:true,
+   run:e=>{
+     e.title='正午极光';
+     e.text='稀薄的天色里，一道绿光竟在白昼隐约展开——罕见的日间极光，所有人都停下了脚步。';
+     e.options=[
+       {t:'开机记录光谱（占用传感器电量）', fn:x=>{
+          gearOf('sensor').val=clamp(gearOf('sensor').val-4,0,100);
+          const s=addSample(SAMPLE_POOL.mini[1],'野外偶遇');
+          x.log(`获得「${s.n}」（价值 ${s.v}）。传感器耗电 -4。`,'good'); x.next() }},
+       {t:'只是看看', sub:'全队士气 +8', fn:x=>{
+          S.picked.map(mem).forEach(m=>m.mo=clamp(m.mo+8,0,100));
+          x.log('没有人说话。绿色光幕之下，连日紧绷的神情松动了片刻。','pur'); x.next() }},
+     ]}},
+  {id:'breakdown', w:9,
+   run:e=>{
+     e.title='雪地车故障';
+     e.text='头车咳嗽两声停了，传动皮带断裂，机油在雪上洇开一小片深色。';
+     e.options=[
+       {t:'老魏现场抢修（机械检定）', sub:'失败则损耗设备并消耗体力', fn:x=>{
+          const r=check(S.picked,'mech',6);
+          if(r.ok){ gearOf('scooter').val=clamp(gearOf('scooter').val-5,0,100);
+            x.log(`${r.who.name} 用备用皮带修好车辆。`,'good'); x.next() }
+          else { gearOf('scooter').val=clamp(gearOf('scooter').val-16,0,100);
+            drainField(S.picked,6);
+            x.log('修了很久也只能勉强凑合，雪地车状况大幅下降。','bad'); x.next() } }},
+       {t:'弃车，徒步前进', sub:'体力消耗大增，返程风险上升', fn:x=>{
+          gearOf('scooter').val=clamp(gearOf('scooter').val-10,0,100);
+          e.state.walk=true;
+          drainField(S.picked,10);
+          x.log('丢下故障车，队伍深一脚浅一脚继续前进。','warn'); x.next() }},
+     ]}},
+  {id:'whitewind', w:8,
+   run:e=>{
+     e.title='白化阵风';
+     e.text='风突然把地表浮雪卷起，天地间只剩一片白，手伸到面前都看不见指尖。';
+     e.options=[
+       {t:'原地扎营等风过去', sub:'消耗补给与时间', fn:x=>{
+          S.supplies=Math.max(0,S.supplies-4);
+          drainField(S.picked,3);
+          x.log('帐篷在风里抖了两个小时，队伍等能见度恢复才上路。','warn'); x.next() }},
+       {t:'凭导航仪硬闯（导航检定）', sub:'失败则迷路，大幅消耗体力', fn:x=>{
+          const r=check(S.picked,'ice',7);
+          if(r.ok){ x.log(`${r.who.name} 盯着 GPS 与绳距把队伍带出了白化区。`,'good'); x.next() }
+          else { drainField(S.picked,12); S.supplies=Math.max(0,S.supplies-3);
+            const vic=pick(S.picked.map(mem));
+            if(chance(.4)) hurt(vic,'白化天中失温');
+            x.log('偏离路线数公里，重新定位时所有人都快冻透了。','bad'); x.next() } }},
+     ]}},
+  {id:'signal', w:4, good:true,
+   run:e=>{
+     e.title='规律的低频信号';
+     e.text='通信员耳机里传来一阵规律的低频脉冲，不是冰裂，也不像设备自激。方位指向内陆。';
+     e.options=[
+       {t:'录下信号并标注方位', sub:'科学价值 + 可能与内陆异常点有关', fn:x=>{
+          const s=addSample(SAMPLE_POOL.mini[2],'野外偶遇','方位已标注');
+          x.log(`获得「${s.n}」（价值 ${s.v}）。方位角记入了苏晓的手簿。`,'good'); x.next() }},
+       {t:'当作设备干扰，不予理会', fn:x=>{x.log('队伍关闭了该频段。','cyan'); x.next() }},
+     ]}},
+  {id:'morale', w:7,
+   run:e=>{
+     const low=S.picked.map(mem).filter(m=>m.mo<45);
+     e.title='队伍摩擦';
+     e.text= low.length? `${low[0].name} 已经几个小时没说话，行进间距拉得越来越大——再绷下去要出事。`
+                        :'漫长行进里，有人开始为路线选择争执，语气越来越冲。';
+     e.options=[
+       {t:'队长停下沟通，疏导情绪', sub:'耗时，士气 +6~10', fn:x=>{
+          S.picked.map(mem).forEach(m=>m.mo=clamp(m.mo+rrange(6,10),0,100));
+          drainField(S.picked,2);
+          x.log('林峥让大家停在背风处，把话说开了再走。','pur'); x.next() }},
+       {t:'无视情绪，催促进度', sub:'采样检定略升，士气 −8', fn:x=>{
+          S.picked.map(mem).forEach(m=>m.mo=clamp(m.mo-8,0,100));
+          e.state.rush=true;
+          x.log('没人再说话，只有踏雪声。','warn'); x.next() }},
+     ]}},
+];
+/* 天气变化会改变返程风险，事件选择依据实时装备与人员状态 */
+
+function startExpedition(st){
+  S.supplies-=tripCost(st);
+  S.stats.trips++; S.stats.km+=st.dist*2;
+  S.expedition={
+    site:st, leg:0, hazards:hazardCount(st), done:0, state:{walk:false,rush:false},
+    beats:[], samplesHere:[],
+  };
+  if(S.rations===2) S.picked.map(mem).forEach(m=>m.mo=clamp(m.mo+4,0,100));
+  addTime(`第${S.day}日 · 出发前往「${st.name}」（${st.dist}km，队员 ${S.picked.map(i=>mem(i).name).join('、')}）。`,'cyan');
+  addLog(`出发：<b>${st.name}</b>，行程 ${st.dist*2}km，预计途中事件 ${hazardCount(st)} 次。`,'cyan');
+  nextBeat();
+}
+function nextBeat(){
+  const e=S.expedition;
+  // leg: 0..hazards-1 去程事件 -> arrive -> sample -> return事件 -> back
+  if(e.done < e.hazards){
+    e.leg=0;
+    const h=chooseHazard(e.site);
+    S.stats.hazards++;
+    const ev={title:'',text:'',options:[],state:e.state, log:(m,c)=>addLog(m,c)};
+    h.run(ev);
+    e.cur=ev;
+    renderBeat(`去程 ${e.done+1}/${e.hazards}`,ev);
+    return;
+  }
+  if(!e.arrived){ e.arrived=true; arriveBeat(); return }
+  if(!e.sampled){ e.sampled=true; samplingBeat(); return }
+  if(e.returnsDone===undefined) e.returnsDone=0;
+  if(e.returnsDone < Math.max(1,e.hazards-1)){
+    e.leg=1;
+    const h=chooseHazard(e.site,true);
+    S.stats.hazards++;
+    const ev={title:'',text:'',options:[],state:e.state, log:(m,c)=>addLog(m,c)};
+    h.run(ev);
+    e.cur=ev;
+    renderBeat(`返程 ${e.returnsDone+1}/${Math.max(1,e.hazards-1)}`,ev);
+    return;
+  }
+  finishExpedition();
+}
+function hazardAdvance(){
+  const e=S.expedition;
+  if(e.leg===0) e.done++;
+  else e.returnsDone=(e.returnsDone||0)+1;
+  nextBeat();
+}
+function chooseHazard(st,onReturn){
+  const list=HAZARDS.map(h=>{
+    let w=h.w;
+    if(st.danger>=3 && (h.id==='crevasse'||h.id==='whitewind')) w+=6;
+    if(S.wx.vis.v<=2 && h.id==='whitewind') w+=10;
+    if(S.wx.wind>28 && h.id==='breakdown') w+=6;
+    if(S.wx.sev>=3 && h.good) w=Math.max(1,w-3);
+    if(onReturn && h.good && chance(.5)) w=Math.max(1,w-4);
+    if(S.expedition.state.walk && (h.id==='crevasse'||h.id==='whitewind')) w+=4;
+    return [h,w];
+  });
+  return weighted(list);
+}
+function renderBeat(tag,ev){
+  $('#stage').innerHTML=`
+    <div class="beat-anim">
+      <span class="phase-tag">PHASE 03 · 野外行动 · ${tag}</span>
+      <div class="day-title">${esc(ev.title)}</div>
+      <div class="day-sub">${S.expedition.site.name} · 气温 ${S.wx.temp}℃ · 能见度 ${S.wx.vis.n} · ${S.wx.wind}km/h</div>
+      <div class="prose"><p>${esc(ev.text)}</p></div>
+      <div class="choices">
+        ${ev.options.map((o,i)=>`
+          <button class="btn" onclick="chooseHaz(${i})">${esc(o.t)}
+          ${o.sub?`<span class="sub">${esc(o.sub)}</span>`:''}</button>`).join('')}
+      </div>
+      ${renderFieldStatus()}
+    </div>`;
+}
+function renderFieldStatus(){
+  return `<div style="margin-top:12px;font-size:11px;color:var(--faint);font-family:var(--mono)">
+    ${S.picked.map(id=>{const m=mem(id);return `${m.name} 体${m.st}${m.inj?' ⚠':''}`}).join('　')}
+    ｜ 补给 ${S.supplies}</div>`;
+}
+function chooseHaz(i){
+  const ev=S.expedition.cur;
+  ev.options[i].fn({next:hazardAdvance, log:(m,c)=>addLog(m,c)});
+}
+
+/* ------- 抵达采样点 ------- */
+function arriveBeat(){
+  const e=S.expedition, st=e.site;
+  const ev={
+    title:'抵达 · '+st.name,
+    text:st.desc+' 仪器读数正在稳定下来。风比出发时'+(S.wx.sev>S.forecast.sev?'更猛了——预报偏于乐观。':(S.wx.sev<S.forecast.sev?'小了些，算是运气。':'与预报大体一致。')),
+  };
+  e.cur=ev;
+  $('#stage').innerHTML=`
+    <div class="beat-anim">
+      <span class="phase-tag">PHASE 03 · 抵达</span>
+      <div class="day-title">${esc(ev.title)}</div>
+      <div class="day-sub">实测：${SEV_INFO[S.wx.sev].n} · ${S.wx.temp}℃ · 能见度 ${S.wx.vis.n}</div>
+      <div class="prose"><p>${esc(ev.text)}</p></div>
+      <div class="choices">
+        <button class="btn primary" onclick="nextBeat()">开始采样 →</button>
+        ${S.samplingMode==='aggro'?'<div style="font-size:11px;color:var(--warn)">本次按「激进深挖」预案执行。</div>':''}
+      </div>
+      ${renderFieldStatus()}
+    </div>`;
+}
+
+/* ------- 采样结算 ------- */
+function samplingBeat(){
+  const e=S.expedition, st=e.site;
+  const ids=S.picked;
+  const aggro=S.samplingMode==='aggro';
+  let lines=[];
+  // 主样本：标准流程 1~2 个；激进深挖固定 2 个，另加 1 个深层样本
+  const n = aggro ? 2 : (chance(.35)?2:1);
+  for(let i=0;i<n;i++){
+    let proto=pick(SAMPLE_POOL[st.id]);
+    let s=addSample(proto, st.name);
+    // 专长加成
+    const specTag = {geo:['地质','火山','天体','结构'], ice:['冰川','古气候','大气','极端生态','沉积'], met:['空间物理']};
+    const specialist=ids.map(mem).find(m=>
+      (m.spec==='geo'&&specTag.geo.includes(s.tag))||(m.spec==='ice'&&specTag.ice.includes(s.tag)));
+    if(specialist){ const b=rrange(2,5); s.v+=b; S.sci+=b; s.note+=(s.note?'；':'')+`${specialist.name}专业判读 +${b}` }
+    // 设备修正
+    if(st.id==='lake'||st.id==='interior'){
+      const d=gearOf('drill');
+      if(d.val<40){ const cut=Math.round(s.v*.15); s.v-=cut; S.sci-=cut; s.note+=(s.note?'；':'')+`钻机老旧 −${cut}` }
+    }
+    if(st.tags.includes('met')||chance(.15)){
+      const se=gearOf('sensor');
+      if(se.val<35){ const cut=Math.round(s.v*.1); s.v-=cut; S.sci-=cut; s.note+=(s.note?'；':'')+`传感器漂移 −${cut}` }
+    }
+    if(e.state.rush){ const b=rrange(1,3); s.v+=b; S.sci+=b; s.note+=(s.note?'；':'')+`赶工精修 +${b}` }
+    e.samplesHere.push(s);
+    lines.push(`采得「${s.n}」，价值 ${s.v}（${s.tag}）`);
+    if(s.flag==='meteor' && !S.flags.meteor){
+      S.flags.meteor=true;
+      lines.push('⚠ 样本中出现熔壳与磁性特征——这是陨石碎片！内陆异常点坐标已解锁。');
+      addTime('第'+S.day+'日 · 发现陨石碎片，内陆异常点解锁。','warn');
+    }
+  }
+  // 深挖附加样本
+  if(aggro){
+    S.stats.deepDrills++;
+    gearOf('drill').val=clamp(gearOf('drill').val-rrange(5,10),0,100);
+    gearOf('scooter').val=clamp(gearOf('scooter').val-3,0,100);
+    const cost=st.dist>=40?rrange(10,16):rrange(6,10);
+    drainField(ids, cost);
+    if(chance(.3)){ const vic=pick(ids.map(mem)); hurt(vic,'深挖作业中扭伤/冻伤') }
+    if(chance(.85)){
+      const d=SAMPLE_POOL.deep[st.id];
+      const s=addSample(d, st.name, '激进深挖');
+      e.samplesHere.push(s);
+      lines.push(`深挖取得「${s.n}」，价值 ${s.v}（${s.tag}）`);
+    } else {
+      S.stats.samplesLost++;
+      lines.push('深孔在最后关头塌了，额外的样本没能保住。');
+    }
+  } else {
+    drainField(ids, Math.max(2, Math.round(st.dist/8)) + (S.rations===2?-2:0));
+  }
+  // 士气：丰收/空手
+  const total=e.samplesHere.reduce((a,b)=>a+b.v,0);
+  if(total>=st.sci[1]) ids.map(mem).forEach(m=>m.mo=clamp(m.mo+6,0,100));
+  if(total<st.sci[0]) ids.map(mem).forEach(m=>m.mo=clamp(m.mo-6,0,100));
+
+  addLog(`采样完成：${lines[0]}${lines[1]?' 等，合计 +'+total+' 科学价值。':''}`, total>=st.sci[1]?'good':'');
+  $('#stage').innerHTML=`
+    <div class="beat-anim">
+      <span class="phase-tag">PHASE 03 · 采样</span>
+      <div class="day-title">${st.name} · 作业完成</div>
+      <div class="day-sub">本点收获 ${e.samplesHere.length} 件 · 合计 ${total} 价值</div>
+      <div class="log">${lines.map(l=>`<p class="good">▸ ${esc(l)}</p>`).join('')}</div>
+      <div class="prose"><p style="color:var(--dim);font-size:12px">
+      天色${S.wx.sev>=2?'正在变坏':'尚可'}，但返程总是比去程更长——低温、疲劳与设备状况会一起算账。</p></div>
+      <div class="choices"><button class="btn primary" onclick="nextBeat()">启程返回 →</button></div>
+      ${renderFieldStatus()}
+    </div>`;
+}
+
+/* ------- 返程结束 ------- */
+function finishExpedition(){
+  const e=S.expedition, st=e.site;
+  // 返程低温与能见度损耗
+  let cold=0;
+  if(S.wx.temp<=-40) cold+=8;
+  else if(S.wx.temp<=-30) cold+=4;
+  if(S.wx.vis.v<=2) cold+=5;
+  if(e.state.walk) cold+=10;
+  if(S.rations===2) cold=Math.round(cold*.7);
+  drainField(S.picked, Math.max(2,cold));
+  // 设备返程损耗
+  gearOf('scooter').val=clamp(gearOf('scooter').val-Math.max(1,Math.round(st.dist/14))-(e.state.walk?6:0),0,100);
+  if(S.wx.sev>=3) gearOf('sensor').val=clamp(gearOf('sensor').val-rrange(2,6),0,100);
+  // 有人在外体力归零 -> 额外受伤检定已在 drainField 中
+  // 样本损失：白化天 + 重伤
+  let lostMsg='';
+  if(S.wx.vis.v===1 && e.samplesHere.length && chance(.35)){
+    const s=e.samplesHere.pop();
+    S.samples=S.samples.filter(x=>x!==s); S.sci-=s.v; S.stats.samplesLost++;
+    lostMsg=`白化返程混乱中遗失了一件样本「${s.n}」（−${s.v}）。`;
+    addLog(lostMsg,'bad');
+  }
+  const home=ids2names(S.picked);
+  addTime(`第${S.day}日 · ${home} 从「${st.name}」返回，带回 ${e.samplesHere.length} 件样本。`,
+          e.samplesHere.length?'good':'warn');
+  S.phase='evening'; S.expedition=null;
+  startEvening(lostMsg);
+}
+function ids2names(ids){return ids.map(i=>mem(i).name).join('、')}
+
+/* =====================================================================
+   阶段四：站内夜晚（2 行动点）+ 通信
+   ===================================================================== */
+function startEvening(extraMsg){
+  S.ap=2;
+  S.flags.commUsedToday=false;
+  renderEvening(extraMsg);
+}
+function renderEvening(extraMsg){
+  const win=S.flags.commWindowToday;
+  const used=S.flags.commUsedToday;
+  const evac=S.flags.evacRequested;
+  $('#stage').innerHTML=`
+    <div class="beat-anim">
+      <span class="phase-tag">PHASE 04 · 站内夜晚</span>
+      <div class="day-title">归站 · 第 ${S.day} 日夜</div>
+      <div class="day-sub">夜间行动点 ${S.ap}/2 · 加热器在角落轰鸣，窗上结着新的冰花</div>
+      ${extraMsg?`<div class="log"><p class="bad">${esc(extraMsg)}</p></div>`:''}
+      <div class="prose"><p style="color:var(--dim);font-size:12.5px">
+      每个夜晚可完成 <b>2</b> 项站内事务。通信窗口${win?' <b style="color:var(--cyan">今夜开放</b>（信号强度 '+(win.q*100)+'%），一次窗口只能上行一条信息':'今夜不开放'}。
+      ${evac?`<br><b style="color:var(--warn)">撤离待命：接应第 ${S.flags.evacDay} 日抵达。</b>`:''}
+      </p></div>
+
+      ${win?`
+      <div class="card" style="background:#0c1621;margin-bottom:6px">
+        <h3 style="margin-bottom:6px">📡 通信窗口（${used?'已使用':'可用'}）</h3>
+        <div class="signal"><i style="width:${win.q*100}%"></i></div>
+        <div class="choices">
+          <button class="btn ${used?'':'primary'}" ${used?'disabled':''} onclick="comm('science')">上行科学数据
+            <span class="sub">当前样本科学价值 ${S.sci} —— 信号决定完整上传比例</span></button>
+          <button class="btn" ${used?'disabled':''} onclick="comm('supply')">请求补给空投
+            <span class="sub">信号越好，投送越准（+10~26 补给）</span></button>
+          <button class="btn danger" ${used?'disabled':''} onclick="comm('evac')">请求撤离
+            <span class="sub">结束科考：接应将于 2 日后抵达，之后必须坚守</span></button>
+        </div>
+      </div>`:''}
+
+      <div class="choices">
+        <button class="btn" id="actRest" onclick="evening('rest')">轮班休息
+          <span class="sub">全员体力 +10，士气 +3（1 行动点）</span></button>
+        <button class="btn" onclick="evening('repair')">检修设备
+          <span class="sub">选择一项设备，恢复状况（1 行动点）</span></button>
+        <button class="btn" onclick="evening('medic')">医官处置
+          <span class="sub">治疗一名伤者，苏晓在站效果更好（1 行动点）</span></button>
+        <button class="btn" onclick="evening('meeting')">队务会议
+          <span class="sub">全员士气 +8，公开讨论去留（1 行动点）</span></button>
+      </div>
+      <div class="choices" style="margin-top:14px">
+        <button class="btn primary" id="endDay" onclick="endDay()">结束第 ${S.day} 日 →
+          <span class="sub">夜间维持消耗补给，加热器持续损耗；推进天气与随机事件</span></button>
+      </div>
+      ${repairPickerHtml()}
+    </div>`;
+}
+function repairPickerHtml(){return '<div id="repairPick"></div>'}
+function evening(act){
+  if(S.ap<=0){flash('今夜的行动点已经用完。');return}
+  if(act==='rest'){
+    walkingMembers().forEach(m=>{m.st=clamp(m.st+10,0,100);m.mo=clamp(m.mo+3,0,100)});
+    addLog('轮班休息：全员体力 +10。','cyan');
+    spend();
+  }
+  if(act==='meeting'){
+    S.stats.meetings++;
+    walkingMembers().forEach(m=>m.mo=clamp(m.mo+8,0,100));
+    addLog('队务会议：围在加热器旁把分歧摊开，全员士气 +8。','pur');
+    spend();
+  }
+  if(act==='medic'){
+    const injured=S.members.filter(m=>m.alive&&m.inj>0);
+    if(!injured.length){flash('当前没有需要处置的伤员。');return}
+    const box=$('#repairPick');
+    box.innerHTML=`<div class="picker"><h4>选择处置对象</h4><div class="mpick">
+      ${injured.map(m=>`<div class="p" onclick="doMedic('${m.id}')">${m.name}（${m.inj===1?'轻伤':'重伤'}）</div>`).join('')}
+      <div class="p off" onclick="$('#repairPick').innerHTML=''">取消</div></div></div>`;
+  }
+  if(act==='repair'){
+    const box=$('#repairPick');
+    box.innerHTML=`<div class="picker"><h4>选择检修设备</h4><div class="mpick">
+      ${S.gear.map(g=>`<div class="p" onclick="doRepair('${g.id}')">${g.name}（${g.val}）</div>`).join('')}
+      <div class="p off" onclick="$('#repairPick').innerHTML=''">取消</div></div>
+      <div style="font-size:10px;color:var(--faint);margin-top:6px">机械技能检定：老魏在站恢复更多。</div></div>`;
+  }
+}
+function doRepair(gid){
+  const g=gearOf(gid);
+  const hasWei=!!mem('lao').alive && mem('lao').inj<2;
+  const r=check(S.members.filter(m=>m.alive&&m.inj<2).map(m=>m.id),'mech',hasWei?4:6);
+  const gain=hasWei?rrange(12,20):rrange(6,12);
+  g.val=clamp(g.val+gain,0,100);
+  S.stats.repairs++;
+  if(gid==='heater') S.flags._heaterBoost=true;
+  addLog(`${r.who.name} 检修了${g.name}（+${gain}，当前 ${g.val}）。`,'good');
+  $('#repairPick').innerHTML='';
+  spend();
+}
+function doMedic(mid){
+  const m=mem(mid);
+  const su=mem('su');
+  const good=su.alive&&su.inj<2;
+  const r=check(S.members.filter(x=>x.alive&&x.inj<2).map(x=>x.id),'med',good?5:7);
+  if(r.ok){ m.inj=Math.max(0,m.inj-1); addLog(`${r.who.name} 为${m.name}处置：伤情${m.inj===0?'痊愈，恢复行动':'好转'}。`,'good') }
+  else { m.mo=clamp(m.mo-4,0,100); addLog(`${r.who.name} 尽力处理了${m.name}的伤，但站内药物有限，效果不佳。`,'warn') }
+  $('#repairPick').innerHTML='';
+  spend();
+}
+function spend(){ S.ap--; renderEvening() }
+function flash(msg){
+  const b=$('#endDay');
+  const old=b.innerHTML;
+  b.innerHTML=msg; b.classList.add('danger');
+  setTimeout(()=>{b.innerHTML=old;b.classList.remove('danger')},1600);
+}
+
+/* ------- 通信 ------- */
+function comm(kind){
+  if(S.flags.commUsedToday) return;
+  const win=S.flags.commWindowToday;
+  const roll=win.q*.7+RNG()*.3; // 实际接通质量
+  S.stats.comms++;
+  S.flags.commUsedToday=true;
+  S.flags.commsLog.push({day:S.day,kind});
+  if(kind==='science'){
+    if(!S.samples.length){
+      addLog('📡 通信窗口开启，但样本柜空空如也——没有可上行的数据。','warn');
+      S.flags.commUsedToday=false; // 未实际占用窗口
+      renderEvening(); return;
+    }
+    S.uploaded=Math.max(S.uploaded||0,S.sci); // 标记已入库水位（不重复计分）
+    addLog(`📡 科学数据上行：当前 ${S.sci} 价值已在后方数据库入库备份（约 ${Math.round((.55+roll*.4)*100)}% 完整度）。`,'good');
+    addTime(`第${S.day}日夜 · 上行科学数据，入库水位 ${S.sci}。`,'cyan');
+  }
+  if(kind==='supply'){
+    const got=Math.round(8+roll*18);
+    S.supplies=clamp(S.supplies+got,0,140);
+    addLog(`📡 补给请求已受理：空投收回燃油与口粮约 <b>+${got}</b>。`,'good');
+    addTime(`第${S.day}日夜 · 申请空投补给（+${got}）。`,'good');
+  }
+  if(kind==='evac'){
+    S.flags.evacRequested=true;
+    S.flags.evacDay=Math.min(S.maxDay,S.day+2);
+    addLog('📡 <b>撤离请求已确认</b>：接应队将于第 '+S.flags.evacDay+' 日抵达坐标点。在此之前必须维持全员生存。','warn');
+    addTime(`第${S.day}日夜 · 正式请求撤离，接应窗口第 ${S.flags.evacDay} 日。`,'warn');
+    walkingMembers().forEach(m=>m.mo=clamp(m.mo+5,0,100));
+  }
+  S.ap=Math.max(0,S.ap-1);
+  renderEvening();
+}
+
+/* ------- 结束当日 ------- */
+function endDay(){
+  // 撤离接应优先判定：接应日不再结算夜间消耗
+  if(S.flags.evacRequested && S.day===S.flags.evacDay){
+    finishGame('evac'); return;
+  }
+  // 夜间补给消耗
+  const heads=walkingMembers().length;
+  const h=gearOf('heater');
+  const heaterPoor=h.val<35;
+  let cost=2+heads+(heaterPoor?3:0);
+  S.supplies=Math.max(0,S.supplies-cost);
+  h.val=clamp(h.val-rrange(3,7)-(S.wx.temp<=-35?2:0),0,100);
+  gearOf('sensor').val=clamp(gearOf('sensor').val-rrange(0,3),0,100);
+  gearOf('drill').val=clamp(gearOf('drill').val-rrange(0,2),0,100);
+  // 断暖/断粮后果
+  let nightMsg=[];
+  if(S.supplies<=0){
+    nightMsg.push('补给耗尽：站内温度持续下降，配给减半。');
+    walkingMembers().forEach(m=>{m.st=clamp(m.st-10,0,100);m.mo=clamp(m.mo-8,0,100)});
+  }
+  if(heaterPoor){
+    nightMsg.push('加热器运转艰难，夜里每个人都多消耗了体力。');
+    walkingMembers().forEach(m=>m.st=clamp(m.st-6,0,100));
+    if(chance(.4)){ const m=pick(walkingMembers()); hurt(m,'夜间冻伤') }
+  }
+  // 随机夜间事件
+  S.stats.nights++;
+  const ne=nightEvent();
+  if(ne) nightMsg.push(ne);
+  // 重伤未愈进展
+  S.members.filter(m=>m.alive&&m.inj===2).forEach(m=>{
+    if(chance(.35)){
+      m.alive=false; m.inj=3;
+      nightMsg.push(`${m.name}的伤情在夜里恶化，没能等到下一个通信窗口。`);
+      addTime(`第${S.day}日夜 · ${m.name}因重伤不治牺牲。`,'bad');
+      walkingMembers().forEach(o=>o.mo=clamp(o.mo-15,0,100));
+    } else { m.st=clamp(m.st+3,0,100) }
+  });
+  nightMsg.forEach(m=>addLog('🌙 '+m,'warn'));
+
+  // 团灭
+  if(ableMembers().length===0){ finishGame('disaster'); return }
+  // 末日
+  if(S.day>=S.maxDay){ finishGame('season'); return }
+
+  S.day++;
+  rollWeather(false);
+  S.phase='brief';
+  render();
+}
+function nightEvent(){
+  const pool=[
+    ()=>{ walkingMembers().forEach(m=>m.mo=clamp(m.mo+5,0,100)); return '有人在休息区弹起了吉他，夜里难得有了笑声（士气+5）。' },
+    ()=>{ const m=pick(walkingMembers()); m.mo=clamp(m.mo-rrange(6,12),0,100); return `${m.name}在值班时沉默了很久——极夜前的孤独开始显现（士气−）。` },
+    ()=>{ gearOf('heater').val=clamp(gearOf('heater').val-rrange(6,12),0,100); return '夜间报警：加热器管路冻堵，抢救后仍有损耗。' },
+    ()=>{ gearOf('scooter').val=clamp(gearOf('scooter').val-rrange(4,9),0,100); return '车库传来异响：一只贼鸥撞上了雪地车罩，外壳受损。' },
+    ()=>{ S.supplies=Math.max(0,S.supplies-rrange(3,6)); return '清点发现燃油桶在低温下渗漏，损失了部分燃料。' },
+    ()=>{ if(S.samples.length){ const s=pick(S.samples); S.samples=S.samples.filter(x=>x!==s); S.sci-=s.v; S.stats.samplesLost++; return `冰柜温控波动，一件样本「${s.n}」报废。` } return '冰柜一夜都在发出令人担心的嗡鸣。' },
+    ()=>{ walkingMembers().forEach(m=>{if(m.inj>0)m.st=clamp(m.st+6,0,100)}); return '难得安稳的一夜，伤员多睡了几个小时。' },
+    ()=>'远处传来冰架崩解的闷响，像打雷。没有人因此醒来——除了值班员。',
+  ];
+  if(chance(.55)) return pick(pool)();
+  return null;
+}
+
+/* =====================================================================
+   结局与档案
+   ===================================================================== */
+function totalScience(){
+  // 样本在手即计入科学价值；「上行入库」是灾难结局下唯一能保全的部分，
+  // 不与在手样本重复计分。安全撤离时全部样本保全，失联时仅已上行数据留存。
+  const local=S.samples.reduce((a,b)=>a+b.v,0);
+  if(S.final && S.final.kind==='disaster') return S.uploaded||0;
+  return Math.max(local, S.uploaded||0);
+}
+function gradeGame(kind){
+  const sci=totalScience();
+  const alive=S.members.filter(m=>m.alive).length;
+  const dead=4-alive;
+  let grade, title;
+  const safe=kind==='evac';
+  if(dead>0 && sci>=120) {grade='C';title='带血的数据'}
+  else if(dead>0){grade='D';title='未归的队伍'}
+  else if(safe && sci>=150){grade='S';title='满载而归的传奇队'}
+  else if(safe && sci>=100){grade='A';title='教科书式考察'}
+  else if(safe && sci>=50){grade='B';title='稳妥的一季'}
+  else if(safe){grade='C';title='平安，但收获寥寥'}
+  else if(kind==='season'){
+    if(sci>=150){grade='A';title='坚持到最后的季节队'}
+    else if(sci>=90){grade='B';title='季节尾声的丰收'}
+    else {grade='C';title='随最后一班船撤离'}
+  }
+  else { grade='E'; title='冰原上的失联档案' }
+  return {grade,title,sci,alive,dead,kind};
+}
+function finishGame(kind){
+  S.phase='archive';
+  // 末日未请求撤离：默认随季末撤离
+  if(kind==='season'){ S.flags.evacRequested=true; walkingMembers().forEach(m=>S.stats.rescued++) }
+  if(kind==='evac'){ walkingMembers().forEach(m=>S.stats.rescued++) }
+  S.final=gradeGame(kind);
+  addTime(kind==='disaster'?'站点失联，档案由最后一次上行数据自动封存。'
+          :`第${S.day}日 · 队伍撤离，霜脊站本季考察结束。`, kind==='disaster'?'bad':'good');
+  render();
+}
+
+function flavorLines(){
+  const L=[];
+  if(S.stats.deepDrills>=3) L.push('他们总在问钻机还能不能再深一百米。');
+  if(S.stats.comms===0) L.push('整季没有一次主动上行——所有数据都装在他们自己带回来的箱子里。');
+  if((S.uploaded||0)>=80) L.push('后方数据库里，来自霜脊的数据包从未断过。');
+  if(S.stats.meetings>=3) L.push('会议记录比采样日志还厚，但没有人因此抱怨。');
+  if(S.stats.repairs>=4) L.push('老魏说，这一季他修的东西比采的样多。');
+  if(S.stats.samplesLost>=2) L.push('冰柜与白化天带走的，和带回来的一样真实。');
+  if(S.supplies<=5 && S.final && S.final.alive===4) L.push('最后一天，油表几乎贴着零——他们把节俭做成了一门艺术。');
+  if(S.flags.meteor) L.push('一块陨石碎片，把这支队伍引向了地图之外。');
+  if(S.members.every(m=>m.alive)&&S.final&&S.final.sci<40) L.push('他们把所有人安全带了回来，除此之外几乎什么都没发生——这本身是种本事。');
+  if(S.final&&S.final.dead>0) L.push('档案的每一页背后，都少了一个本应一起回来的人。');
+  if(S.stats.hazards>=14) L.push('气象员的手簿上写满了“实际比预报差”。');
+  return L.slice(0,4);
+}
+
+function renderArchive(){
+  $('#hdr').style.display='none';
+  $('#app').style.display='none';
+  const f=S.final;
+  const kindTxt={evac:'主动请求撤离（接应抵达）',season:'季末常规撤离',disaster:'站点失联 / 队伍损失'}[f.kind];
+  const gcolor={S:'#1a7f5a',A:'#2a6f4f',B:'#3d6b8a',C:'#9a7b2f',D:'#a34a3a',E:'#7a2f3a'}[f.grade];
+  const lines=flavorLines();
+  const root=$('#root-intro');
+  root.style.display='block';
+  root.innerHTML=`
+  <div class="archive" style="padding:20px 14px 60px">
+    <div class="doc">
+      <h1>霜脊科考档案</h1>
+      <div class="sub">FROSTSPINE RESEARCH LEDGER · NO.${S.code} · 第74南极考察季</div>
+
+      <div class="grade">
+        <div class="g" style="color:${gcolor}">${f.grade}</div>
+        <div class="t">${esc(f.title)}</div>
+      </div>
+
+      <h2>一 · 任务概要</h2>
+      <table>
+        <tr><th>档案编号</th><td>${S.code}</td><th>考察季</th><td>2026–27 · 第74季</td></tr>
+        <tr><th>起止日期</th><td>2026.11.01 — ${dateStr().split(' ')[0]}</td><th>实际作业</th><td>${S.day} 日</td></tr>
+        <tr><th>结束方式</th><td>${kindTxt}</td><th>通信次数</th><td>${S.stats.comms} 次</td></tr>
+        <tr><th>科学价值合计</th><td><b>${f.sci}</b>（在手样本 ${S.samples.reduce((a,b)=>a+b.v,0)} · 已上行入库 ${S.uploaded||0}）</td><th>累计行程</th><td>${S.stats.km} km</td></tr>
+      </table>
+
+      <h2>二 · 人员情况</h2>
+      <table>
+        <tr><th>队员</th><th>岗位</th><th>归建状态</th><th>最终体力/士气</th><th>季内备注</th></tr>
+        ${S.members.map(m=>`<tr>
+          <td>${esc(m.name)}</td><td>${esc(m.role)}</td>
+          <td>${m.alive?(m.inj===2?'重伤归建':m.inj===1?'带伤归建':'健康归建'):'<span style="color:#a33">因公殉职</span>'}</td>
+          <td>${m.st} / ${m.mo}</td>
+          <td>${esc(m.notes.slice(-2).join('；')||'—')}</td></tr>`).join('')}
+      </table>
+
+      <h2>三 · 样本清单（${S.samples.length} 件）</h2>
+      ${S.samples.length?`<table><tr><th>#</th><th>样本</th><th>类别</th><th>来源</th><th>采获日</th><th>价值</th><th>备注</th></tr>
+        ${S.samples.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.n)}</td><td>${esc(s.tag)}</td><td>${esc(s.src)}</td><td>D${s.day}</td><td>${s.v}</td><td>${esc(s.note||'—')}</td></tr>`).join('')}
+      </table>`:'<p style="font-size:12.5px;color:#666">样本柜为空。</p>'}
+
+      <h2>四 · 关键事件时间线</h2>
+      <ul>${S.timeline.map(e=>`<li><b>D${e.d}</b> ${esc(e.msg)}</li>`).join('')}</ul>
+
+      <h2>五 · 行动统计</h2>
+      <table>
+        <tr><th>外出任务</th><td>${S.stats.trips} 次</td><th>实验室日</th><td>${S.stats.labDays} 日</td></tr>
+        <tr><th>途中风险事件</th><td>${S.stats.hazards} 次</td><th>激进深挖</th><td>${S.stats.deepDrills} 次</td></tr>
+        <tr><th>设备检修</th><td>${S.stats.repairs} 次</td><th>队务会议</th><td>${S.stats.meetings} 次</td></tr>
+        <tr><th>遗失/报废样本</th><td>${S.stats.samplesLost} 件</td><th>获救人数</th><td>${S.stats.rescued} / 4</td></tr>
+      </table>
+
+      ${lines.length?`<h2>六 · 归档评语</h2><ul>${lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`:''}
+
+      <div class="foot">本档案由「霜脊档案」系统依据实际选择生成 · FROSTSPINE LEDGER · SEED ${S.seed}</div>
+    </div>
+    <div class="row noprint" style="max-width:520px;margin:18px auto 0">
+      <button class="btn primary" onclick="window.print()">🖨 打印 / 存为 PDF</button>
+      <button class="btn" onclick="downloadArchive()">⬇ 下载档案文本</button>
+      <button class="btn" onclick="restart()">↻ 再赴霜脊</button>
+    </div>
+  </div>`;
+}
+function downloadArchive(){
+  const f=S.final;
+  let t=`霜脊科考档案 FROSTSPINE LEDGER\n编号 ${S.code} · 评级 ${f.grade} · ${f.title}\n${'='.repeat(48)}\n`;
+  t+=`科学价值 ${f.sci}｜作业 ${S.day} 日｜行程 ${S.stats.km}km｜通信 ${S.stats.comms} 次｜结束：${f.kind}\n\n人员\n`;
+  S.members.forEach(m=>{t+=`- ${m.name} / ${m.role} / ${m.alive?'归建(伤'+m.inj+')':'殉职'} / 体${m.st} 意${m.mo}\n`});
+  t+=`\n样本（${S.samples.length}）\n`;
+  S.samples.forEach((s,i)=>{t+=`${i+1}. ${s.n} [${s.tag}] 来源:${s.src} D${s.day} 价值:${s.v} ${s.note}\n`});
+  t+=`\n时间线\n`;
+  S.timeline.forEach(e=>{t+=`D${e.d} ${e.msg}\n`});
+  const blob=new Blob([t],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${S.code}.txt`; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* =====================================================================
+   渲染：侧栏与顶栏
+   ===================================================================== */
+function render(){
+  if(S.phase==='archive'){ renderArchive(); return }
+  $('#hdr').style.display='flex';
+  $('#app').style.display='grid';
+  $('#root-intro').style.display='none';
+  renderHeader(); renderCrew(); renderGear(); renderSamples(); renderTimeline();
+  if(S.phase==='brief') renderBrief();
+  else if(S.phase==='plan') renderPlan();
+  else if(S.phase==='evening') renderEvening();
+}
+function renderHeader(){
+  const nextWin=COMM_WINDOWS.find(c=>c.day>=S.day);
+  const evac=S.flags.evacRequested;
+  $('#chips').innerHTML=`
+    <span class="chip cyan">日<b>${S.day}/${S.maxDay}</b></span>
+    <span class="chip ${S.supplies<25?'bad':S.supplies<45?'warn':'good'}">补给<b>${S.supplies}</b></span>
+    <span class="chip cyan">科学价值<b>${S.sci}</b></span>
+    <span class="chip">气温<b class="${S.wx.temp<=-35?'':''}" style="color:${S.wx.temp<=-35?'var(--bad)':'var(--ink)'}">${S.wx.temp}℃</b></span>
+    <span class="chip ${S.wx.sev>=3?'bad':S.wx.sev>=2?'warn':''}">天气<b>${SEV_INFO[S.wx.sev].n}</b></span>
+    <span class="chip">能见度<b>${S.wx.vis.n}</b></span>
+    <span class="chip ${evac?'pulse-warn warn':''}">${evac?'撤离接应':'下一通信窗'}<b>${evac?'D'+S.flags.evacDay:(nextWin?'D'+nextWin.day:'无')}</b></span>`;
+}
+function barHtml(v){
+  const cls=v<20?'cri':v<45?'lo':'';
+  return `<i class="${cls}" style="width:${v}%"></i>`;
+}
+function renderCrew(){
+  $('#crew').innerHTML=S.members.map(m=>{
+    const tag=!m.alive?'<span class="tag crit">殉职</span>':
+      m.inj===2?'<span class="tag crit">重伤</span>':
+      m.inj===1?'<span class="tag inj">轻伤</span>':
+      m.mo<30?'<span class="tag low">心理预警</span>':'<span class="tag fine">可派遣</span>';
+    const mental = m.mo>=70?'状态积极':m.mo>=45?'情绪平稳':m.mo>=25?'疲惫压抑':'濒临崩溃';
+    return `<div class="member">
+      <div class="top"><span class="nm">${m.name}</span>${tag}</div>
+      <div class="role">${m.role}</div>
+      <div class="bars">
+        <div class="bar">体力 ${m.st}${barHtml(m.st)}</div>
+        <div class="bar mo">意志 ${m.mo}${barHtml(m.mo)}</div>
+      </div>
+      <div class="mental">心理：${mental}${m.inj?' ｜ 伤况 '+m.inj:''}</div>
+    </div>`;
+  }).join('');
+}
+function renderGear(){
+  $('#gear').innerHTML=S.gear.map(g=>{
+    const cls=g.val<25?'cri':g.val<45?'low':'';
+    return `<div class="gear"><span>${g.name}<br><span style="font-size:10px;color:var(--faint)">${g.desc}</span></span>
+      <span class="gv ${cls}">${g.val}</span></div>`;
+  }).join('');
+}
+function renderSamples(){
+  $('#sciChip').textContent='合计 '+S.sci;
+  if(!S.samples.length){ $('#samples').innerHTML='<div style="font-size:11px;color:var(--faint)">样本柜尚空。出发采样或偶遇记录会出现在这里。</div>'; return }
+  $('#samples').innerHTML=S.samples.slice().reverse().map(s=>`
+    <div class="samp">
+      <div class="h"><b>${esc(s.n)}</b><span class="v">${s.v}</span></div>
+      <div class="src">${esc(s.src)} · D${s.day} · ${esc(s.tag)}</div>
+      ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
+    </div>`).join('');
+}
+function renderTimeline(){
+  if(!S.timeline.length){ $('#timeline').innerHTML='<div style="font-size:11px;color:var(--faint)">日志将记录每个关键决定。</div>'; return }
+  $('#timeline').innerHTML=S.timeline.slice().reverse().map(e=>
+    `<div class="e ${e.cls}"><span class="d">DAY ${e.d}</span>${esc(e.msg)}</div>`).join('');
+}
+
+/* =====================================================================
+   开场
+   ===================================================================== */
+function renderIntro(){
+  $('#hdr').style.display='none';
+  $('#app').style.display='none';
+  const r=$('#root-intro');
+  r.style.display='block';
+  r.innerHTML=`
+  <div class="intro">
+    <div class="big">霜脊档案</div>
+    <div class="en">FROSTSPINE LEDGER · A POLAR EXPEDITION GAME</div>
+    <div class="brief">
+      <p style="margin-bottom:8px">2026 年春，南极大陆沿岸，<b>霜脊站</b>。</p>
+      <p style="font-size:12.5px;color:var(--dim);margin-bottom:10px">
+      你带领一支四人小队执行第 74 南极考察季的最后阶段任务。极昼将尽，通信窗口稀少，
+      燃油与口粮只够支撑 <b>14 天</b>。每一次外出都可能带回改写古气候记录的冰芯，
+      也可能遭遇白化天、裂隙与故障。科学价值与安全撤离之间，没有标准答案。</p>
+      <ul>
+        <li><b>晨间</b>看天气预报（信度有限），决定今日去向；</li>
+        <li><b>规划</b>选择采样点、2–3 名队员与口粮配额，可选择稳妥或激进深挖；</li>
+        <li><b>野外</b>处理裂隙、风暴、故障与士气事件，返程还要再算一次账；</li>
+        <li><b>夜晚</b>用 2 个行动点休息、检修、医疗或开会，通信窗口内只能上行一条信息；</li>
+        <li>在通信窗口<b>请求撤离</b>可提前收场；坚持到第 14 天则随季末撤离；若全员失能，档案将由最后一次上行自动封存。</li>
+      </ul>
+    </div>
+    <div class="choices">
+      <button class="btn primary" onclick="startClicked()">开始第 74 考察季 →</button>
+    </div>
+    <p style="text-align:center;font-size:10px;color:var(--faint);font-family:var(--mono);margin-top:18px">
+    体力 / 专长 / 意志共同决定检定结果 · 所有选择将写入最终科考档案</p>
+  </div>`;
+}
+function startClicked(){
+  newGame();
+  addTime('第1日 · 小队抵达霜脊站，本季考察开始。','cyan');
+  S.phase='brief';
+  render();
+}
+function restart(){ renderIntro() }
+
+/* 暴露给 onclick */
+Object.assign(window,{
+  goPlan,pickSite,toggleMember,setRat,setMode,chooseLab,
+  chooseHaz,nextBeat,evening,doRepair,doMedic,comm,endDay,
+  startClicked,restart,downloadArchive,
+});
+
+/* ---------------- 启动 / 无头测试钩子 ---------------- */
+if(typeof window!=='undefined'){
+  renderIntro();
+}
+if(typeof module!=='undefined'){
+  module.exports={newGame,S:()=>S,goPlan,pickSite,toggleMember,setRat,setMode,
+    chooseLab,chooseHaz,nextBeat,startExpedition,evening,doRepair,doMedic,comm,
+    endDay,render:()=>{}, finishGame,totalScience,setRNG:(s)=>{RNG=mulberry32(s)},
+    get S2(){return S}};
+}
+</script>
+</body>
+</html>
