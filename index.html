@@ -159,6 +159,13 @@
   .samp .h .v{font-family:var(--mono); color:var(--cyan)}
   .samp .src{font-size:10px; color:var(--faint); font-family:var(--mono)}
   .samp .note{font-size:10.5px; color:var(--dim); margin-top:2px}
+  .samp .labtag{font-size:9px; padding:0 5px; border-radius:8px; border:1px solid var(--line); margin-left:5px; letter-spacing:1px; white-space:nowrap}
+  .samp .labtag.no{border-color:#6a5a2e; color:var(--warn)}
+  .samp .labtag.yes{border-color:#2e5a3e; color:var(--good)}
+  .sctrl{display:flex; gap:5px; margin-bottom:6px}
+  .sctrl select{flex:1; min-width:0; background:#0e1a27; color:var(--dim); border:1px solid var(--line); border-radius:6px; padding:3px 4px; font-size:10.5px; font-family:inherit}
+  .ssum{font-size:10.5px; color:var(--faint); font-family:var(--mono); margin-bottom:8px}
+  .ssum b{color:var(--cyan); font-weight:600}
   #timeline{max-height:380px; overflow-y:auto; padding-right:4px}
   #timeline .e{font-size:11.5px; color:var(--dim); padding:4px 0 4px 10px; border-left:2px solid var(--line); margin-bottom:5px}
   #timeline .e .d{font-family:var(--mono); font-size:9.5px; color:var(--faint); display:block}
@@ -235,6 +242,7 @@
   <div class="col">
     <section class="card">
       <h3>样本柜 / SAMPLES <span id="sciChip" style="float:right;color:var(--cyan)"></span></h3>
+      <div id="sampCtrl"></div>
       <div id="samples"></div>
     </section>
     <section class="card">
@@ -365,6 +373,8 @@ const COMM_WINDOWS=[ // 第几日（从1计），信号强度 0..1
 
 /* ---------------- 游戏状态 ---------------- */
 let S = null;
+/* 样本柜视图状态：类别 / 整理状态筛选与排序方式（不写入档案） */
+const sampView={tag:'all',status:'all',sort:'new'};
 function newGame(seed){
   RNG = mulberry32(seed||(Date.now()>>>0));
   S = {
@@ -388,6 +398,7 @@ function newGame(seed){
            deepDrills:0},
     final:null,
   };
+  sampView.tag='all'; sampView.status='all'; sampView.sort='new';
   rollWeather(true);
 }
 function mem(id){return S.members.find(m=>m.id===id)}
@@ -573,7 +584,7 @@ function renderPlan(){
 
       <div class="row" style="margin-top:10px">
         <button class="btn" onclick="chooseLab()">🛠 留站实验室日
-          <span class="sub">整理已有样本（价值 +25%）· 全员恢复体力 · 不消耗外出补给</span></button>
+          <span class="sub">${labBtnSub()}</span></button>
       </div>
 
       ${sel?renderPlanDetail(sel):''}
@@ -645,6 +656,18 @@ function toggleMember(id){
 }
 function setRat(r){ S.rations=r; render() }
 function setMode(m){ S.samplingMode=m; render() }
+
+/* 实验室日预览：与 chooseLab 完全相同的规则（每件未整理样本 +25%，四舍五入取整） */
+function labPreview(){
+  const pend=S.samples.filter(s=>!s.labbed);
+  return {n:pend.length, gain:pend.reduce((a,s)=>a+Math.round(s.v*.25),0)};
+}
+function labBtnSub(){
+  const lp=labPreview();
+  if(!S.samples.length) return '样本柜尚空 · 仍可留站让全员恢复体力 · 不消耗外出补给';
+  if(!lp.n) return '样本均已整理 · 仍可留站让全员恢复体力 · 不消耗外出补给';
+  return `待整理 <span class="wn">${lp.n} 件</span> · 预计增值 <span class="ok">+${lp.gain}</span>（每件价值 +25%）· 全员恢复体力 · 不消耗外出补给`;
+}
 
 /* 实验室日 */
 function chooseLab(){
@@ -1396,15 +1419,57 @@ function renderGear(){
       <span class="gv ${cls}">${g.val}</span></div>`;
   }).join('');
 }
+function setSampView(k,v){ sampView[k]=v; renderSamples() }
 function renderSamples(){
   $('#sciChip').textContent='合计 '+S.sci;
-  if(!S.samples.length){ $('#samples').innerHTML='<div style="font-size:11px;color:var(--faint)">样本柜尚空。出发采样或偶遇记录会出现在这里。</div>'; return }
-  $('#samples').innerHTML=S.samples.slice().reverse().map(s=>`
+  const ctrl=$('#sampCtrl'), box=$('#samples');
+  if(!S.samples.length){
+    ctrl.innerHTML='';
+    box.innerHTML='<div style="font-size:11px;color:var(--faint)">样本柜尚空。出发采样或偶遇记录会出现在这里。</div>';
+    return;
+  }
+  // 类别选项来自柜中现有样本；若当前筛选类别已不存在则回退为全部
+  const tags=[...new Set(S.samples.map(s=>s.tag))];
+  if(sampView.tag!=='all' && !tags.includes(sampView.tag)) sampView.tag='all';
+  let list=S.samples.map((s,i)=>({s,i}));
+  if(sampView.tag!=='all')    list=list.filter(x=>x.s.tag===sampView.tag);
+  if(sampView.status==='no')  list=list.filter(x=>!x.s.labbed);
+  if(sampView.status==='yes') list=list.filter(x=>x.s.labbed);
+  const cmp={
+    new:  (a,b)=>b.s.day-a.s.day||b.i-a.i,
+    old:  (a,b)=>a.s.day-b.s.day||a.i-b.i,
+    vDesc:(a,b)=>b.s.v-a.s.v||b.i-a.i,
+    vAsc: (a,b)=>a.s.v-b.s.v||a.i-b.i,
+  }[sampView.sort]||((a,b)=>b.i-a.i);
+  list.sort(cmp);
+  const subV=list.reduce((a,x)=>a+x.s.v,0);
+  const pend=list.filter(x=>!x.s.labbed).length;
+  ctrl.innerHTML=`
+    <div class="sctrl">
+      <select onchange="setSampView('tag',this.value)" title="按类别筛选">
+        <option value="all" ${sampView.tag==='all'?'selected':''}>全部类别</option>
+        ${tags.map(t=>`<option value="${esc(t)}" ${sampView.tag===t?'selected':''}>${esc(t)}</option>`).join('')}
+      </select>
+      <select onchange="setSampView('status',this.value)" title="按整理状态筛选">
+        <option value="all" ${sampView.status==='all'?'selected':''}>全部状态</option>
+        <option value="no" ${sampView.status==='no'?'selected':''}>待整理</option>
+        <option value="yes" ${sampView.status==='yes'?'selected':''}>已整理</option>
+      </select>
+      <select onchange="setSampView('sort',this.value)" title="排序方式">
+        <option value="new" ${sampView.sort==='new'?'selected':''}>采获日·新</option>
+        <option value="old" ${sampView.sort==='old'?'selected':''}>采获日·旧</option>
+        <option value="vDesc" ${sampView.sort==='vDesc'?'selected':''}>价值·高</option>
+        <option value="vAsc" ${sampView.sort==='vAsc'?'selected':''}>价值·低</option>
+      </select>
+    </div>
+    <div class="ssum">筛选结果 <b>${list.length}</b> 件 · 价值小计 <b>${subV}</b>${list.length!==S.samples.length?` · 全部 ${S.samples.length} 件`:''}${pend?` · 其中待整理 ${pend} 件`:''}</div>`;
+  box.innerHTML=list.length?list.map(({s})=>`
     <div class="samp">
       <div class="h"><b>${esc(s.n)}</b><span class="v">${s.v}</span></div>
-      <div class="src">${esc(s.src)} · D${s.day} · ${esc(s.tag)}</div>
+      <div class="src">${esc(s.src)} · D${s.day} · ${esc(s.tag)}<span class="labtag ${s.labbed?'yes':'no'}">${s.labbed?'已整理':'待整理'}</span></div>
       ${s.note?`<div class="note">${esc(s.note)}</div>`:''}
-    </div>`).join('');
+    </div>`).join('')
+    :'<div style="font-size:11px;color:var(--faint)">没有符合当前筛选条件的样本。</div>';
 }
 function renderTimeline(){
   if(!S.timeline.length){ $('#timeline').innerHTML='<div style="font-size:11px;color:var(--faint)">日志将记录每个关键决定。</div>'; return }
@@ -1457,7 +1522,7 @@ function restart(){ renderIntro() }
 Object.assign(window,{
   goPlan,pickSite,toggleMember,setRat,setMode,chooseLab,
   chooseHaz,nextBeat,evening,doRepair,doMedic,comm,endDay,
-  startClicked,restart,downloadArchive,
+  startClicked,restart,downloadArchive,setSampView,
 });
 
 /* ---------------- 启动 / 无头测试钩子 ---------------- */
@@ -1468,6 +1533,7 @@ if(typeof module!=='undefined'){
   module.exports={newGame,S:()=>S,goPlan,pickSite,toggleMember,setRat,setMode,
     chooseLab,chooseHaz,nextBeat,startExpedition,evening,doRepair,doMedic,comm,
     endDay,render:()=>{}, finishGame,totalScience,setRNG:(s)=>{RNG=mulberry32(s)},
+    labPreview,labBtnSub,renderSamples,setSampView,sampView:()=>sampView,
     get S2(){return S}};
 }
 </script>
